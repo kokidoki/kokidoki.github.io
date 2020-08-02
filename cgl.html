@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="utf-8">
+</head>
+<body>
+	<script type="text/javascript">
+		function isValid(a, b) {
+			return a >= 0 && a <= 44 && b >= 0 && b <= 89;
+		}
+		function nextGen() {
+			let changeNodes = [], changes = [];
+			for(let row = 0; row < 45; row++) {
+				for(let checkboxIndex = 0; checkboxIndex < 90; checkboxIndex++) {
+					let live = getLiveCheckboxes(row, checkboxIndex);
+					if(boxes[row][checkboxIndex].checked === true && (live < 2 || live > 3)) {
+						changeNodes.push(boxes[row][checkboxIndex]);
+						changes.push(false);
+					} else if(boxes[row][checkboxIndex].checked === false && (live === 3)) {
+						changeNodes.push(boxes[row][checkboxIndex]);
+						changes.push(true);
+					}
+				}
+			}
+			for(let c = 0; c < changeNodes.length; c++) {
+				changeNodes[c].checked = changes[c];
+			}
+		}
+		function getLiveCheckboxes(row, checkboxIndex) {
+			let live = 0;
+			let pos = [[row - 1, checkboxIndex], 
+					[row + 1, checkboxIndex], 
+					[row, checkboxIndex + 1], 
+					[row, checkboxIndex - 1],
+					[row - 1, checkboxIndex - 1], 
+					[row - 1, checkboxIndex + 1], 
+					[row + 1, checkboxIndex - 1], 
+					[row + 1, checkboxIndex + 1]];
+			pos = pos.filter(n => isValid(n[0], n[1]));
+			pos.forEach(n => {
+				if(boxes[n[0]][n[1]].checked === true) {
+					live++;
+				}
+			});
+			return live;
+		}
+		function timeout() {
+			setTimeout(() => {
+				if(run) timeout();
+				nextGen();
+			}, animationdelay);
+		}
+		function gameLoop() {
+			run = true;
+			timeout();
+		}
+		function stopLoop() {
+			run = false;
+		}
+		function clearGrid() {
+			for(let row = 0; row < 45; row++) {
+				for(let checkboxIndex = 0; checkboxIndex < 90; checkboxIndex++) {
+					boxes[row][checkboxIndex].checked = false;
+				}
+			}
+		}
+		function updateAnimation() {
+			let sliderDisplay = document.getElementById('sliderValue');
+			let slider = document.getElementById('animationdelaySlider');
+			animationdelay = slider.value;
+			sliderDisplay.innerHTML = slider.value;
+		}
+		let animationdelay = 95;
+		let run;
+		let boxes = [];
+		for(let x = 0; x < 45; x++) {
+			let row = document.createElement('div');
+			let arrayRow = [];
+			for(let y = 0; y < 90; y++) {
+				let checkbox = document.createElement('input');
+				checkbox.setAttribute('type', 'checkbox');
+				if(Math.round(Math.random()) === 1) {
+					checkbox.checked = true;
+				}
+				arrayRow.push(checkbox);
+				row.appendChild(checkbox);
+			}
+			document.body.appendChild(row);
+			boxes.push(arrayRow);
+		}
+	</script>
+	<div>
+		<button onclick="nextGen()">Next Generation</button>
+		<button onclick="gameLoop()">Start</button>
+		<button onclick="stopLoop()">Stop</button>
+		<button onclick="clearGrid()">Clear grid</button>
+		<span>Animation delay: </span>
+		<input type="range" id="animationdelaySlider" oninput="updateAnimation()" min="0" max="1000" value="95">
+		<span id="sliderValue">95</span>
+	</div>
+</body>
+</html>
